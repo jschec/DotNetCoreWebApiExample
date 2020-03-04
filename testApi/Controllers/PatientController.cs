@@ -11,7 +11,6 @@ using testApi.Models;
 
 namespace testApi.Controllers
 {
-    //get request to https://localhost:<port>/patient
     [ApiController]
     [Route("[controller]")]
     public class PatientController : ControllerBase
@@ -25,6 +24,7 @@ namespace testApi.Controllers
             _context = context;
         }
 
+        //get request to https://localhost:<port>/patient
         [HttpGet]
         public async Task<ActionResult<List<Patient>>> GetAll()
         {
@@ -48,7 +48,6 @@ namespace testApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Patient>> GetPatient(long id)
         {
-            Console.WriteLine(id);
             try
             {
                 var patient =  await _context.Patients.FromSqlRaw("SELECT id, first_name, last_name, date_of_birth, date_added FROM patient_t WHERE id = {0}", id).SingleOrDefaultAsync();
