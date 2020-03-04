@@ -34,7 +34,6 @@ namespace testApi
 
             var connection = Configuration.GetConnectionString("PatientDatabase");
             services.AddDbContextPool<PatientDbContext>(options => options.UseSqlServer(connection));
-            //old
             services.AddControllers();
         }
 

@@ -11,6 +11,7 @@ using testApi.Models;
 
 namespace testApi.Controllers
 {
+    //get request to https://localhost:<port>/patient
     [ApiController]
     [Route("[controller]")]
     public class PatientController : ControllerBase
@@ -43,12 +44,14 @@ namespace testApi.Controllers
             
         }
 
+        //get request to https://localhost:<port>/patient/<id>
         [HttpGet("{id}")]
         public async Task<ActionResult<Patient>> GetPatient(long id)
         {
+            Console.WriteLine(id);
             try
             {
-                var patient = await _context.Patients.FindAsync(id);
+                var patient =  await _context.Patients.FromSqlRaw("SELECT id, first_name, last_name, date_of_birth, date_added FROM patient_t WHERE id = {0}", id).SingleOrDefaultAsync();
                 if (patient == null)
                 {
                     return NotFound();
@@ -60,7 +63,8 @@ namespace testApi.Controllers
                 return BadRequest();
             }
         }
-        /*
+
+        //post request to https://localhost:<port>/patient with JSON body
         [HttpPost]
         public async Task<ActionResult> CreatePatient(Patient patient)
         {
@@ -72,24 +76,17 @@ namespace testApi.Controllers
 
             try
             {
-                var newPatient = _context.Visits.FromSqlRaw(
+                await _context.Database.ExecuteSqlRawAsync(
                     "INSERT INTO patient_t (id, first_name, last_name, date_of_birth) VALUES " +
                     "(@Id, @FirstName, @LastName, @DateOfBirth)", p);
-
-                await _context.SaveChangesAsync();
 
                 return CreatedAtAction(
                     nameof(GetPatient),
                     new
                     {
                         Id = patient.Id,
-                        FirstName = patient.FirstName,
-                        LastName = patient.LastName,
-                        DateOfBirth = patient.DateOfBirth,
-                        DateAdded = patient.DateAdded
                     },
                     patient);
-                )
             }
             catch (Exception)
             {
@@ -98,11 +95,9 @@ namespace testApi.Controllers
 
         }
 
-        */
-
-
+        //put request to https://localhost:<port>/patient/<id> with JSON body
         [HttpPut("{id}")]
-        public async Task<ActionResult<int>> PutPatient(long id, Patient patient)
+        public async Task<ActionResult> PutPatient(long id, Patient patient)
         {
             if (id != patient.Id)
             {
@@ -110,7 +105,7 @@ namespace testApi.Controllers
             }
 
             SqlParameter[] p = new SqlParameter[4];
-            p[0] = new SqlParameter("@Id", patient.Id);
+            p[0] = new SqlParameter("@Id", id);
             p[1] = new SqlParameter("@FirstName", patient.FirstName);
             p[2] = new SqlParameter("@LastName", patient.LastName);
             p[3] = new SqlParameter("@DateOfBirth", patient.DateOfBirth);
@@ -120,11 +115,12 @@ namespace testApi.Controllers
                 var rowsAffected = await _context.Database.ExecuteSqlRawAsync(
                     "UPDATE patient_t SET first_name = @FirstName, last_name = @LastName," +
                     "date_of_birth = @DateOfBirth WHERE id = @Id", p);
-                if (rowsAffected == 0)
+
+                if (rowsAffected.Equals(0))
                 {
                     return NotFound();
                 }
-                return rowsAffected;
+                return NoContent();
             }
             catch (Exception)
             {
@@ -132,12 +128,17 @@ namespace testApi.Controllers
             }
         }
 
+        //delete request to https://localhost:<port>/patient/<id>
         [HttpDelete("{id}")]
         public async Task<ActionResult<Patient>> DeletePatient(long id)
         {
             try
             {
-                await _context.Database.ExecuteSqlRawAsync("DELETE FROM patient_t WHERE id = {0}", id);
+                var rowsAffected = await _context.Database.ExecuteSqlRawAsync("DELETE FROM patient_t WHERE id = {0}", id);
+                if (rowsAffected.Equals(0))
+                {
+                    return NotFound();
+                }
                 return NoContent();
             }
             catch (Exception)

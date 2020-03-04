@@ -66,24 +66,25 @@ namespace testApi.Controllers
         */
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<int>> PutPatient(long id, Patient patient)
+        public async Task<ActionResult<int>> PutVisit(long id, Visit visit)
         {
-            if (id != patient.Id)
+            if (id != visit.Id)
             {
                 return BadRequest();
             }
 
-            SqlParameter[] p = new SqlParameter[4];
-            p[0] = new SqlParameter("@Id", patient.Id);
-            p[1] = new SqlParameter("@FirstName", patient.FirstName);
-            p[2] = new SqlParameter("@LastName", patient.LastName);
-            p[3] = new SqlParameter("@DateOfBirth", patient.DateOfBirth);
+            SqlParameter[] p = new SqlParameter[5];
+            p[0] = new SqlParameter("@Id", visit.Id);
+            p[1] = new SqlParameter("@PatientId", visit.PatientId);
+            p[2] = new SqlParameter("@Type", visit.Type);
+            p[3] = new SqlParameter("@Description", visit.Description);
+            p[4] = new SqlParameter("@Date", visit.Date);
 
             try
             {
                 var rowsAffected = await _context.Database.ExecuteSqlRawAsync(
-                    "UPDATE patient_t SET first_name = @FirstName, last_name = @LastName," +
-                    "date_of_birth = @DateOfBirth WHERE id = @Id", p);
+                    "UPDATE visit_t SET type = @Type, description = @Description," +
+                    "date = @Date WHERE id = @Id AND patient_id = @PatientId", p);
                 if (rowsAffected == 0)
                 {
                     return NotFound();
@@ -101,7 +102,7 @@ namespace testApi.Controllers
         {
             try
             {
-                await _context.Database.ExecuteSqlRawAsync("DELETE FROM patient_t WHERE id = {0}", id);
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM visit_t WHERE id = {0}", id);
                 return NoContent();
             }
             catch (Exception)
