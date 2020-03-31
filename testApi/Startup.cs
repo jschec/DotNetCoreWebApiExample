@@ -27,11 +27,6 @@ namespace testApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //new
-            //services.AddDbContext<PatientDbContext>(opts =>
-            //    opts.UseInMemoryDatabase("patientDB"));
-            //services.AddScoped<PatientDbContext>();
-
             var connection = Configuration.GetConnectionString("PatientDatabase");
             services.AddDbContextPool<PatientDbContext>(options => options.UseSqlServer(connection));
             services.AddControllers();
